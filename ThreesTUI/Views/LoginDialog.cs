@@ -4,11 +4,15 @@ using ThreesTUI.Server;
 namespace ThreesTUI.Views;
 public class LoginDialog : Dialog
 { 
-    public LoginDialog(Func<string, string, LoginResult> tryLoginFunc)
+    public LoginDialog(Func<string, string, Task<LoginResult>> tryLoginFunc)
     {
         Title = $"Login to Threes";
 
-        var emailLabel = new Label { Text = "Email" };
+        var emailLabel = new Label
+        {
+            Text = "Email: ",
+            Width = 10
+        };
 
         var emailText = new TextField
         {
@@ -18,7 +22,8 @@ public class LoginDialog : Dialog
 
         var passwordLabel = new Label
         {
-            Text = "Password",
+            Text = "Password: ",
+            Width = Dim.Width(emailLabel),
             X = Pos.Left(emailLabel),
             Y = Pos.Bottom(emailLabel) + 1
         };
@@ -39,9 +44,9 @@ public class LoginDialog : Dialog
             IsDefault = true
         };
 
-        btnLogin.Accepting += (s, e) =>
+        btnLogin.Accepting += async (s, e) =>
         {
-            var result = tryLoginFunc(emailText.Text, passwordText.Text);
+            var result = await tryLoginFunc(emailText.Text, passwordText.Text);
             if (result.Success)
             {
                 Application.RequestStop();

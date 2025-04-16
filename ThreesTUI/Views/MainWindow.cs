@@ -24,31 +24,27 @@ public class MainWindow : Window
     public void LogIn()
     {
         // todo: check not already logged in
-        var dlg = new LoginDialog((u, p) =>
-        {
-            Random.Shared.Next(0, 1);
-            return new LoginResult(Random.Shared.Next(0, 2) == 0, "bungus");
-        });
+        var dlg = new LoginDialog(_client.LogIn);
         Application.Run(dlg);
-        //_client.LogIn(dlg.Email, "pw");
         
         if (_loggedIn != null && _gameStatusMenuItem != null)
         {
-            _gameStatusMenuItem.Title = $"Logged in as alden.";
+            _gameStatusMenuItem.Title = $"Logged in as {_client.Session?.Username}.";
             _loggedIn.Title = "Log Out";
         }
         dlg.Dispose();
     }
 
-    public void LogOut()
+    public async Task LogOut()
     {
-        // todo: check not already logged out
-        if (_loggedIn != null && _gameStatusMenuItem != null)
-        {
+        if (_loggedIn is null || _gameStatusMenuItem is null) return;
+        
+        ///if(_client.Session is { IsExpired: false })
+        //{
+            await _client.LogOut();
             _gameStatusMenuItem.Title = "Logged Out";
             _loggedIn.Title = "Log In";
-        }
-        // todo: log out user?
+        //}
     }
 
     private readonly TabView? _tabView;
@@ -62,11 +58,10 @@ public class MainWindow : Window
             Y = 0,
             Width = Dim.Fill(),
             Height = Dim.Fill(),
-            BorderStyle = LineStyle.Single
         };
         
         tabView.AddTab(new() { DisplayText = "Pong", View = Program.Services.GetRequiredService<PingView>()}, false);
-        tabView.AddTab(new() { DisplayText = "Debug", View = Program.Services.GetRequiredService<DebugView>()}, false);
+        tabView.AddTab(new() { DisplayText = "Debug", View = Program.Services.GetRequiredService<DebugView>()}, false );
 
         tabView.SelectedTab = tabView.Tabs.First();
         return tabView;
@@ -113,7 +108,7 @@ public class MainWindow : Window
         return statusBar;
     }
 
-    private void statusBarAccountAccepting(object? sender, CommandEventArgs e)
+    private async void statusBarAccountAccepting(object? sender, CommandEventArgs e)
     {
         Debug.Assert(_gameStatusMenuItem != null, nameof(_gameStatusMenuItem) + " != null");
         if (_gameStatusMenuItem.Title == "Logged Out")
@@ -122,7 +117,7 @@ public class MainWindow : Window
         }
         else
         {
-            LogOut();
+            await LogOut();
         }
     }
 }

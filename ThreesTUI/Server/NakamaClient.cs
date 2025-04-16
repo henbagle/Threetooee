@@ -26,7 +26,7 @@ public class NakamaClient : INakamaClient
         Socket.ReceivedError += e => Console.WriteLine(e);
     }
 
-    public async Task<bool> LogIn(string email, string password)
+    public async Task<LoginResult> LogIn(string email, string password)
     {
         try
         {
@@ -40,19 +40,18 @@ public class NakamaClient : INakamaClient
         catch (ApiResponseException ex)
         {
             Debug.WriteLine($"Authentication error {ex.StatusCode}: {ex.Message}");
-            return false;
+            return new LoginResult(false, ex.Message);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error: {ex.Message}");
-            return false;
+            return new LoginResult(false, ex.Message);
         }
         
-        return Session?.Created ?? false;
+        return Session != null ? new LoginResult(true, "") : new LoginResult(false, $"Session not created.");
     }
 
-    public async void LogOut()
+    public async Task LogOut()
     {
-        throw new NotImplementedException();
+        await Client.SessionLogoutAsync(Session);
     }
 }

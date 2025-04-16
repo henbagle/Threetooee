@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Nakama;
+using ThreesTUI.Logging;
 
 namespace ThreesTUI.Server;
 
@@ -11,20 +12,12 @@ public class NakamaClient : INakamaClient
     
     public bool IsAuthenticated => Session is { IsExpired: false, IsRefreshExpired: false };
     
-    public NakamaClient()
+    public NakamaClient(NakamaSerilogAdapter logger)
     {
         Client = new Client("http", "10.52.1.15", 7350, "defaultkey");
-        Client.Logger = new NakamaConsoleLogger();
+        Client.Logger = logger;
         
         Socket = Nakama.Socket.From(Client);
-        Socket.Connected += () =>
-        {
-            Console.WriteLine("Connected");
-        };
-        Socket.Closed += () =>
-        {
-            Console.WriteLine("Disconnected");
-        };
         Socket.ReceivedError += Console.WriteLine;
     }
 

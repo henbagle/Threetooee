@@ -41,8 +41,7 @@ public class DebugView : View
     {
         _treeView.ClearObjects();
         
-        _treeView.AddObject(new TreeNode($"Host: {_client.Client.Host}"));
-        _treeView.AddObject(new TreeNode($"Port: {_client.Client.Port}"));
+        _treeView.AddObject(new TreeNode($"Host: {_client.Client.Host}:{_client.Client.Port}"));
 
         string socketStatus(ISocket socket)
         {
@@ -55,8 +54,6 @@ public class DebugView : View
         if (_client.Session != null)
         {
             session.Children.Add(new TreeNode($"Session Username: {_client.Session.Username}"));
-            session.Children.Add(new TreeNode($"Session Expired: {_client.Session.IsExpired}"));
-            session.Children.Add(new TreeNode($"Session IsRefreshExpired: {_client.Session.IsRefreshExpired}"));
             session.Children.Add(new TreeNode($"Session Uid: {_client.Session.UserId}"));
         }
         else

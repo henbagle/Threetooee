@@ -39,12 +39,12 @@ public class MainWindow : Window
     {
         if (_loggedIn is null || _gameStatusMenuItem is null) return;
         
-        ///if(_client.Session is { IsExpired: false })
-        //{
+        if(_client.IsAuthenticated)
+        {
             await _client.LogOut();
             _gameStatusMenuItem.Title = "Logged Out";
             _loggedIn.Title = "Log In";
-        //}
+        }
     }
 
     private readonly TabView? _tabView;

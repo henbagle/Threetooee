@@ -9,6 +9,8 @@ public class NakamaClient : INakamaClient
     public ISocket Socket { get; }
     public ISession? Session { get; private set; }
     
+    public bool IsAuthenticated => Session is { IsExpired: false, IsRefreshExpired: false };
+    
     public NakamaClient()
     {
         Client = new Client("http", "10.52.1.15", 7350, "defaultkey");
@@ -23,7 +25,7 @@ public class NakamaClient : INakamaClient
         {
             Console.WriteLine("Disconnected");
         };
-        Socket.ReceivedError += e => Console.WriteLine(e);
+        Socket.ReceivedError += Console.WriteLine;
     }
 
     public async Task<LoginResult> LogIn(string email, string password)
@@ -31,7 +33,7 @@ public class NakamaClient : INakamaClient
         try
         {
             Session = await Client.AuthenticateEmailAsync(email, password, create: true);
-            if (Session != null && Session.Created)
+            if (IsAuthenticated)
             {
                 await Socket.ConnectAsync(Session, true);
 

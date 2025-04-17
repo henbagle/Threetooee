@@ -1,53 +1,41 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Terminal.Gui;
-using ThreesTUI.Server;
 
 namespace ThreesTUI.Views;
 
 public class MainWindow : Window
 {
-    private INakamaClient _client;
-    public MainWindow(INakamaClient client)
+    private readonly SessionManager _sessionManager;
+    public MainWindow(SessionManager sessionManager)
     {
-        _client = client;
+        _sessionManager = sessionManager;
+        _sessionManager.AuthenticationChanged += OnAuthenticationChanged;
 
         BorderStyle = LineStyle.None;
 
-        _tabView = CreateTabView();
-        _statusBar = CreateStatusBar();
-
-        //LogIn();
-        Add(_tabView, _statusBar);
+        var tabView = CreateTabView();
+        var statusBar = CreateStatusBar();
+        
+        Add(tabView, statusBar);
     }
 
-    public void LogIn()
+    private void OnAuthenticationChanged(object? sender, bool isAuthenticated)
+    {
+        Application.Invoke(() =>
+        {
+            UpdateStatusBar(isAuthenticated);
+        });
+    }
+    
+    public void ShowLoginDialog()
     {
         // todo: check not already logged in
-        var dlg = new LoginDialog(_client.LogIn);
+        var dlg = new LoginDialog(_sessionManager.LogIn);
         Application.Run(dlg);
-        
-        if (_loggedIn != null && _gameStatusMenuItem != null)
-        {
-            _gameStatusMenuItem.Title = $"Logged in as {_client.Session?.Username}.";
-            _loggedIn.Title = "Log Out";
-        }
         dlg.Dispose();
     }
 
-    public async Task LogOut()
-    {
-        if (_loggedIn is null || _gameStatusMenuItem is null) return;
-        
-        if(_client.IsAuthenticated)
-        {
-            await _client.LogOut();
-            _gameStatusMenuItem.Title = "Logged Out";
-            _loggedIn.Title = "Log In";
-        }
-    }
-
-    private readonly TabView? _tabView;
 
     private TabView CreateTabView()
     {
@@ -66,9 +54,8 @@ public class MainWindow : Window
         tabView.SelectedTab = tabView.Tabs.First();
         return tabView;
     }
-    
-    private readonly StatusBar? _statusBar;
-    private Shortcut? _loggedIn;
+
+    private Shortcut? _authenticateShortcut;
     private Shortcut? _gameStatusMenuItem;
 
     private StatusBar CreateStatusBar()
@@ -79,14 +66,14 @@ public class MainWindow : Window
             AlignmentModes = AlignmentModes.IgnoreFirstOrLast
         };
 
-        _loggedIn = new()
+        _authenticateShortcut = new()
         {
             Title = "Log In",
             CanFocus = false,
             Key = Key.F10,
         };
 
-        _loggedIn.Accepting += statusBarAccountAccepting;
+        _authenticateShortcut.Accepting += AuthenticateShortcutAccepting;
 
         _gameStatusMenuItem = new()
         {
@@ -103,21 +90,36 @@ public class MainWindow : Window
                 Title = "Quit",
                 Key = Application.QuitKey,
             },
-            _loggedIn,
+            _authenticateShortcut,
             _gameStatusMenuItem);
         return statusBar;
     }
-
-    private async void statusBarAccountAccepting(object? sender, CommandEventArgs e)
+    
+    private void UpdateStatusBar(bool isAuthenticated)
     {
-        Debug.Assert(_gameStatusMenuItem != null, nameof(_gameStatusMenuItem) + " != null");
-        if (_gameStatusMenuItem.Title == "Logged Out")
+        if (_gameStatusMenuItem is null || _authenticateShortcut is null) return;
+        if (isAuthenticated)
         {
-            LogIn();
+            _gameStatusMenuItem.Title = $"Logged in as {_sessionManager.Username}";
+            _authenticateShortcut.Title = "Log Out";
         }
         else
         {
-            await LogOut();
+            _gameStatusMenuItem.Title = "Logged Out";
+            _authenticateShortcut.Title = "Log In";
+        }
+    }
+
+    private void AuthenticateShortcutAccepting(object? sender, CommandEventArgs e)
+    {
+        Debug.Assert(_gameStatusMenuItem != null, nameof(_gameStatusMenuItem) + " != null");
+        if (_gameStatusMenuItem.Title == "Logged Out") // TODO: check if logged in properly
+        {
+            ShowLoginDialog();
+        }
+        else
+        {
+            _sessionManager.LogOut().ConfigureAwait(false);
         }
     }
 }

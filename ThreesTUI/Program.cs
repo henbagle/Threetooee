@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Core;
 using Serilog.Events;
 using Terminal.Gui;
 using ThreesTUI.Logging;
@@ -33,6 +32,7 @@ public static class Program
         services.AddTransient<PingView>();
         services.AddTransient<DebugView>();
         services.AddSingleton<INakamaClient, NakamaClient>();
+        services.AddSingleton<SessionManager>();
         return services.BuildServiceProvider();
     }
     

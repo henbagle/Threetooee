@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Nakama;
+﻿using Nakama;
 using ThreesTUI.Logging;
 
 namespace ThreesTUI.Server;
@@ -34,7 +33,6 @@ public class NakamaClient : INakamaClient
         }
         catch (ApiResponseException ex)
         {
-            Debug.WriteLine($"Authentication error {ex.StatusCode}: {ex.Message}");
             return new LoginResult(false, ex.Message);
         }
         catch (Exception ex)

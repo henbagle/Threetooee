@@ -30,7 +30,8 @@ public class MainWindow : Window
     
     public void ShowLoginDialog()
     {
-        // todo: check not already logged in
+        if (_sessionManager.IsAuthenticated) return;
+        
         var dlg = new LoginDialog(_sessionManager.LogIn);
         Application.Run(dlg);
         dlg.Dispose();

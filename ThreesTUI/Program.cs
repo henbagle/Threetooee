@@ -40,7 +40,7 @@ public static class Program
     {
 #if DEBUG
         var fileLogLevel = LogEventLevel.Information;
-        var uiLogLevel = LogEventLevel.Warning;
+        var uiLogLevel = LogEventLevel.Information;
 #else
         var fileLogLevel = LogEventLevel.Warning;
         var uiLogLevel = LogEventLevel.Error;
@@ -48,7 +48,9 @@ public static class Program
         
         //TODO: Add logging display for UI
 
+        var uiLogSink = new UILogSink();
         services.AddSingleton<NakamaSerilogAdapter>();
+        services.AddSingleton(uiLogSink);
         
         var logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ThreesTUI");
         if(!Directory.Exists(logDirectory)) Directory.CreateDirectory(logDirectory);
@@ -57,6 +59,7 @@ public static class Program
         var serilog = new LoggerConfiguration()
             .MinimumLevel.Information()
             .WriteTo.File(logFile, rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: fileLogLevel)
+            .WriteTo.Sink(uiLogSink, uiLogLevel)
             .CreateLogger();
         
         services.AddLogging(builder =>

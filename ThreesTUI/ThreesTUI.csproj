@@ -14,7 +14,7 @@
       <PackageReference Include="Serilog" Version="4.2.0" />
       <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1" />
       <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-      <PackageReference Include="Terminal.Gui" Version="2.0.0-prealpha.1895" />
+      <PackageReference Include="Terminal.Gui" Version="2.0.0-develop.4411" />
     </ItemGroup>
 
 </Project>

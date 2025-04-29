@@ -1,5 +1,7 @@
-﻿using Nakama;
+﻿using Microsoft.Extensions.Logging;
+using Nakama;
 using ThreesTUI.Logging;
+using ILogger = Serilog.ILogger;
 
 namespace ThreesTUI.Server;
 
@@ -11,10 +13,13 @@ public class NakamaClient : INakamaClient
     
     public bool IsAuthenticated => Session is { IsExpired: false, IsRefreshExpired: false };
     
-    public NakamaClient(NakamaSerilogAdapter logger)
+    private ILogger<NakamaClient> _logger;
+    
+    public NakamaClient(NakamaSerilogAdapter logAdapter, ILogger<NakamaClient> logger)
     {
         Client = new Client("http", "10.52.1.15", 7350, "defaultkey");
-        Client.Logger = logger;
+        Client.Logger = logAdapter;
+        _logger = logger;
         
         Socket = Nakama.Socket.From(Client);
         Socket.ReceivedError += Console.WriteLine;
@@ -33,10 +38,12 @@ public class NakamaClient : INakamaClient
         }
         catch (ApiResponseException ex)
         {
+            _logger.LogError(ex, ex.Message);
             return new LoginResult(false, ex.Message);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, ex.Message);
             return new LoginResult(false, ex.Message);
         }
         
@@ -46,5 +53,10 @@ public class NakamaClient : INakamaClient
     public async Task LogOut()
     {
         await Client.SessionLogoutAsync(Session);
+        Session = null;
+        if (Socket.IsConnected)
+        {
+            await Socket.CloseAsync();
+        }
     }
 }

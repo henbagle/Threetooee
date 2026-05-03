@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Nakama;
 using ThreesTUI.Logging;
-using ILogger = Serilog.ILogger;
 
 namespace ThreesTUI.Server;
 
@@ -38,12 +37,12 @@ public class NakamaClient : INakamaClient
         }
         catch (ApiResponseException ex)
         {
-            _logger.LogError(ex, ex.Message);
+            _logger.LogError(ex, "Login error: {Message}", ex.Message);
             return new LoginResult(false, ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ex.Message);
+            _logger.LogError(ex, "Login error: {Message}", ex.Message);
             return new LoginResult(false, ex.Message);
         }
         

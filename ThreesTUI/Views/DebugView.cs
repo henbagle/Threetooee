@@ -60,7 +60,6 @@ public sealed class DebugView : View
         // TODO: Make a little pop up when you click on a log entry with the details - gets crazy with existing log sink
         _listView.SetSource(uiLogSink.Logs);
         
-        
         Add(top);
         Add(_listView);
         
